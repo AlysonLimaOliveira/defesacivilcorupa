@@ -1,0 +1,117 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: incidents
+    // Document ID: auto-generated
+    // Fields:
+    //   - id: string (optional)
+    //   - category: string (required, enum: ["Hidrológica", "Geológica", "Meteorológica", "Climatológica", "Estrutural", "Incêndio", "Tecnológica", "Risco Potencial"])
+    //   - type: string (required, subcategory)
+    //   - status: string (required, enum: ["Pendente", "Em Atendimento", "Resolvido"])
+    //   - description: string (required)
+    //   - location: map (required, lat: number, lng: number)
+    //   - address: string (optional)
+    //   - city: string (optional)
+    //   - reporterName: string (optional)
+    //   - reporterPhone: string (optional)
+    //   - reporterCPF: string (optional)
+    //   - photos: list (optional)
+    //   - reporterUid: string (optional)
+    //   - createdAt: timestamp (required)
+    //   - updatedAt: timestamp (optional)
+    //
+    // Collection: users
+    // Document ID: userId (uid)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, format: email)
+    //   - displayName: string (optional)
+    //   - role: string (required, enum: ["admin", "operator"])
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+         (request.auth.token.email == "alyson_apps@hotmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidIncident(data) {
+      let validCategories = ["Hidrológica", "Geológica", "Meteorológica", "Climatológica", "Estrutural", "Incêndio", "Tecnológica", "Risco Potencial"];
+      let validStatuses = ["Pendente", "Em Atendimento", "Resolvido"];
+      return data.category in validCategories &&
+             data.type is string &&
+             data.status in validStatuses &&
+             data.description is string && data.description.size() > 0 && data.description.size() < 2000 &&
+             data.location is map && data.location.lat is number && data.location.lng is number &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidUser(data) {
+      let validRoles = ["admin", "operator"];
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in validRoles &&
+             (!('displayName' in data) || data.displayName is string);
+    }
+
+    function isValidNotification(data) {
+      return data.userId is string &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 1000 &&
+             data.createdAt is timestamp &&
+             data.read is bool;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /incidents/{incidentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidIncident(request.resource.data) && 
+                    (!('reporterUid' in request.resource.data) || request.resource.data.reporterUid == request.auth.uid);
+      allow update: if isAuthenticated() && isValidIncident(request.resource.data) && 
+                    (isAdmin() || (resource.data.reporterUid == request.auth.uid && 
+                                   (!('reporterUid' in request.resource.data) || request.resource.data.reporterUid == resource.data.reporterUid)));
+      allow delete: if isAdmin() || (isAuthenticated() && resource.data.reporterUid == request.auth.uid);
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && 
+        (request.resource.data.role == 'operator' || (request.resource.data.role == 'admin' && request.auth.token.email == "alyson_apps@hotmail.com"));
+      allow update: if (isAdmin() && isValidUser(request.resource.data)) || (isOwner(userId) && request.resource.data.role == resource.data.role && isValidUser(request.resource.data));
+      allow delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() && isValidNotification(request.resource.data);
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+  }
+}

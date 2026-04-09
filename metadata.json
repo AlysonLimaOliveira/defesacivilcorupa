@@ -1,0 +1,8 @@
+{
+  "name": "Defesa Civil Corupá - Gestão de Incidentes",
+  "description": "Sistema de registro e gestão de incidentes para a Defesa Civil, com mapas e estatísticas em tempo real.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}

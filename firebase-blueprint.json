@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "Incident": {
+      "title": "Incident",
+      "description": "A record of a civil defense incident.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string", "enum": ["Hidrológica", "Geológica", "Meteorológica", "Climatológica", "Estrutural", "Incêndio", "Tecnológica", "Risco Potencial"] },
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pendente", "Em Atendimento", "Resolvido"] },
+        "description": { "type": "string" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          },
+          "required": ["lat", "lng"]
+        },
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "reporterPhone": { "type": "string" },
+        "reporterCPF": { "type": "string" },
+        "photos": { "type": "array", "items": { "type": "string" } },
+        "reporterUid": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["category", "type", "status", "description", "location", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the system.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "operator"] }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "A notification for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "incidentId": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "message", "createdAt", "read"]
+    }
+  },
+  "firestore": {
+    "/incidents/{incidentId}": {
+      "schema": "Incident",
+      "description": "Collection of incidents."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of users."
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Collection of notifications for users."
+    }
+  }
+}
