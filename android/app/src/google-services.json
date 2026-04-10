@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "910083159303",
+    "project_id": "gen-lang-client-0216286062",
+    "storage_bucket": "gen-lang-client-0216286062.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:910083159303:android:c2cc5680d3a69614f2c1a2",
+        "android_client_info": {
+          "package_name": "com.defesacivil.corupa"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "910083159303-qn4tac8t5j905km0sab1se4ca7tbf0sf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0i0dNXlW3Z6mroPu_J2cAPXGm8Pxdvlc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "910083159303-qn4tac8t5j905km0sab1se4ca7tbf0sf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
