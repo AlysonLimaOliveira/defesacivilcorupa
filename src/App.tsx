@@ -12,6 +12,7 @@ import IncidentList from './components/IncidentList';
 import MapView from './components/MapView';
 import Login from './components/Login';
 import NotificationManager from './components/NotificationManager';
+import OfflineSyncIndicator from './components/OfflineSyncIndicator';
 import UserManagement from './components/UserManagement';
 import { db, collection, query, orderBy, onSnapshot, handleFirestoreError, OperationType, where } from './firebase';
 import { type Incident } from './types';
@@ -206,6 +207,7 @@ const MainApp: React.FC = () => {
 
       <main className="flex-1 lg:ml-64 min-h-screen relative">
         <NotificationManager />
+        <OfflineSyncIndicator />
         
         <AnimatePresence mode="wait">
           <motion.div
